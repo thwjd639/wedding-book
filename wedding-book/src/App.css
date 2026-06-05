@@ -260,3 +260,105 @@ main {
   line-height: 1.6;
   font-family: 'Noto Sans KR', sans-serif;
 }
+
+/* ── 관리자 ── */
+.admin-login {
+  max-width: 360px;
+  margin: 80px auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.admin-login h1 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.admin-login input {
+  padding: 12px 14px;
+  border: 1px solid #e8ddd5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  outline: none;
+}
+
+.admin-login input:focus {
+  border-color: #c9856a;
+}
+
+.admin-login button {
+  padding: 12px;
+  background: #c9856a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.admin-dashboard {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.admin-header h1 {
+  font-size: 20px;
+}
+
+.logout-btn {
+  padding: 6px 16px;
+  border: 1px solid #ccc;
+  background: transparent;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #f0e8df;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.admin-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.delete-btn {
+  padding: 6px 14px;
+  background: #e05c3a;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  flex-shrink: 0;
+}

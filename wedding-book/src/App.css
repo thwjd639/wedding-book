@@ -107,3 +107,24 @@ main {
   margin-bottom: 24px;
   letter-spacing: 2px;
 }
+
+/* ── 사진첩 ── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.photo-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+
+.empty-msg {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+}

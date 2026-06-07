@@ -18,6 +18,7 @@ interface WeddingInfo {
   venue_name: string
   venue_address: string
   map_url: string
+  screenshot_protect: boolean
 }
 
 interface Props {
@@ -78,6 +79,7 @@ export default function AdminDashboard({ onLogout }: Props) {
         venue_name: info.venue_name,
         venue_address: info.venue_address,
         map_url: info.map_url,
+        screenshot_protect: info.screenshot_protect,
       })
       .eq('id', 1)
 
@@ -253,6 +255,20 @@ export default function AdminDashboard({ onLogout }: Props) {
               value={info.map_url}
               onChange={(e) => setInfo({ ...info, map_url: e.target.value })}
             />
+          </div>
+          <div className="settings-row">
+            <label>캡처 방지</label>
+            <div className="toggle-wrap">
+              <span className="toggle-desc">
+                {info.screenshot_protect ? '🔒 캡처 방지 ON' : '🔓 캡처 방지 OFF'}
+              </span>
+              <button
+                className={`toggle-btn ${info.screenshot_protect ? 'on' : 'off'}`}
+                onClick={() => setInfo({ ...info, screenshot_protect: !info.screenshot_protect })}
+              >
+                {info.screenshot_protect ? 'ON' : 'OFF'}
+              </button>
+            </div>
           </div>
           <div className="settings-bottom">
             {saveMsg && <span className="save-msg">{saveMsg}</span>}

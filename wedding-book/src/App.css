@@ -494,3 +494,41 @@ main {
   align-items: center;
   justify-content: center;
 }
+
+/* ── 캡처 방지 ── */
+.protect-on img {
+  pointer-events: none;
+}
+
+/* ── 토글 버튼 ── */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-desc {
+  font-size: 13px;
+  color: #666;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.toggle-btn {
+  padding: 6px 20px;
+  border-radius: 20px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.2s;
+}
+
+.toggle-btn.on {
+  background: #c9856a;
+  color: #fff;
+}
+
+.toggle-btn.off {
+  background: #e8e0d8;
+  color: #999;
+}

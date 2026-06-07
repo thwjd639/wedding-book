@@ -28,14 +28,17 @@ interface Props {
 export default function AdminDashboard({ onLogout }: Props) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'guestbook' | 'settings'>('guestbook')
+  const [tab, setTab] = useState<'guestbook' | 'settings' | 'photos'>('guestbook')
   const [info, setInfo] = useState<WeddingInfo | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
+  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([])
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     fetchEntries()
     fetchInfo()
+    fetchPhotos()
   }, [])
 
   async function fetchEntries() {
@@ -85,6 +88,43 @@ export default function AdminDashboard({ onLogout }: Props) {
     setSaving(false)
   }
 
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+  
+    setUploading(true)
+    const fileName = `${Date.now()}_${file.name}`
+  
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('photos')
+      .upload(`wedding/${fileName}`, file)
+  
+    if (!uploadError && uploadData) {
+      const { data: urlData } = supabase.storage
+        .from('photos')
+        .getPublicUrl(uploadData.path)
+  
+      const { error } = await supabase.from('photos').insert({
+        url: urlData.publicUrl,
+        album_name: '웨딩',
+      })
+  
+      if (!error) fetchPhotos()
+    }
+  
+    setUploading(false)
+    e.target.value = ''
+  }
+  
+  async function handlePhotoDelete(id: string, url: string) {
+    if (!confirm('사진을 삭제할까요?')) return
+  
+    const path = url.split('/photos/')[1]
+    await supabase.storage.from('photos').remove([path])
+    await supabase.from('photos').delete().eq('id', id)
+    setPhotos((prev) => prev.filter((p) => p.id !== id))
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
     onLogout()
@@ -92,6 +132,14 @@ export default function AdminDashboard({ onLogout }: Props) {
 
   function maskPhone(phone: string) {
     return phone.replace(/(\d{3})-?(\d{3,4})-?(\d{4})/, '$1-****-$3')
+  }
+
+  async function fetchPhotos() {
+    const { data, error } = await supabase
+      .from('photos')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (!error && data) setPhotos(data)
   }
 
   return (
@@ -114,6 +162,12 @@ export default function AdminDashboard({ onLogout }: Props) {
           onClick={() => setTab('settings')}
         >
           웨딩 정보 설정
+        </button>
+        <button
+          className={tab === 'photos' ? 'tab active' : 'tab'}
+          onClick={() => setTab('photos')}
+        >
+          사진 업로드
         </button>
       </div>
 
@@ -209,6 +263,36 @@ export default function AdminDashboard({ onLogout }: Props) {
             >
               {saving ? '저장 중...' : '저장'}
             </button>
+          </div>
+        </div>
+      )}
+      
+      {/* 사진 업로드 탭 */}        
+      {tab === 'photos' && (
+        <div className="photos-tab">
+          <label className="upload-label">
+            {uploading ? '업로드 중...' : '📷 사진 추가'}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              disabled={uploading}
+              hidden
+            />
+          </label>
+
+          <div className="admin-photo-grid">
+            {photos.map((photo) => (
+              <div key={photo.id} className="admin-photo-item">
+                <img src={photo.url} alt="웨딩 사진" />
+                <button
+                  className="photo-delete-btn"
+                  onClick={() => handlePhotoDelete(photo.id, photo.url)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

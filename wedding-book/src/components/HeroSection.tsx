@@ -1,24 +1,44 @@
 import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 
-const WEDDING_DATE = new Date('2026-08-08T12:00:00')
-const KAKAO_MAP_URL = 'https://naver.me/Grmatssb'
+interface WeddingInfo {
+  groom_name: string
+  bride_name: string
+  wedding_date: string
+  wedding_time: string
+  venue_name: string
+  venue_address: string
+  map_url: string
+}
 
-function getDday() {
+function getDday(dateStr: string) {
+  const weddingDate = new Date(dateStr + 'T12:00:00')
   const now = new Date()
-  const diff = WEDDING_DATE.getTime() - now.getTime()
+  const diff = weddingDate.getTime() - now.getTime()
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
   return days
 }
 
 export default function HeroSection() {
-  const [dday, setDday] = useState(getDday())
+  const [info, setInfo] = useState<WeddingInfo | null>(null)
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setDday(getDday())
-    }, 1000 * 60)
-    return () => clearInterval(timer)
+    fetchInfo()
   }, [])
+
+  async function fetchInfo() {
+    const { data, error } = await supabase
+      .from('settings')
+      .select('*')
+      .eq('id', 1)
+      .single()
+
+    if (!error && data) setInfo(data)
+  }
+
+  if (!info) return <section id="hero"><p className="empty-msg">불러오는 중...</p></section>
+
+  const dday = getDday(info.wedding_date)
 
   return (
     <section id="hero">
@@ -27,23 +47,28 @@ export default function HeroSection() {
       </div>
 
       <div className="hero-names">
-        <span className="groom">홍길동</span>
+        <span className="groom">{info.groom_name}</span>
         <span className="heart">♥</span>
-        <span className="bride">김영희</span>
+        <span className="bride">{info.bride_name}</span>
       </div>
 
       <div className="hero-date">
-        2025년 8월 8일 금요일
+        {new Date(info.wedding_date).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long',
+        })} {info.wedding_time}
       </div>
 
       <div className="hero-location">
-        <p>그랜드 조선 제주</p>
-        <p className="address">제주 서귀포시 중문관광로72번길 60</p>
+        <p>{info.venue_name}</p>
+        <p className="address">{info.venue_address}</p>
       </div>
 
       <button
         className="map-btn"
-        onClick={() => window.open(KAKAO_MAP_URL, '_blank')}
+        onClick={() => window.open(info.map_url, '_blank')}
       >
         📍 오시는 길
       </button>

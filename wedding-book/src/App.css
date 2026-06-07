@@ -362,3 +362,76 @@ main {
   font-family: 'Noto Sans KR', sans-serif;
   flex-shrink: 0;
 }
+
+/* ── 관리자 탭 ── */
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f0e8df;
+  padding-bottom: 12px;
+}
+
+.tab {
+  padding: 8px 20px;
+  border: 1px solid #e8ddd5;
+  background: transparent;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #999;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: #c9856a;
+  border-color: #c9856a;
+  color: #fff;
+}
+
+/* ── 웨딩 정보 설정 ── */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-row label {
+  font-size: 12px;
+  color: #999;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.settings-row input {
+  padding: 10px 14px;
+  border: 1px solid #e8ddd5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  outline: none;
+}
+
+.settings-row input:focus {
+  border-color: #c9856a;
+}
+
+.settings-bottom {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.save-msg {
+  font-size: 13px;
+  color: #6ab187;
+  font-family: 'Noto Sans KR', sans-serif;
+}

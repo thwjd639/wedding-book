@@ -53,11 +53,28 @@ function App() {
     }
   }, [screenshotProtect])
 
+  // 스크롤 페이드인
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible')
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+    document.querySelectorAll('.fade-section').forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
+  
   return (
     <main className={screenshotProtect ? 'protect-on' : ''}>
       <HeroSection />
-      <GallerySection />
-      <GuestbookSection />
+      <div className="fade-section"><GallerySection /></div>
+      <div className="fade-section"><GuestbookSection /></div>
     </main>
   )
 }

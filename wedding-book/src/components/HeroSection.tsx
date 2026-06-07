@@ -9,6 +9,7 @@ interface WeddingInfo {
   venue_name: string
   venue_address: string
   map_url: string
+  cover_image_url: string | null
 }
 
 function getDday(dateStr: string) {
@@ -32,7 +33,6 @@ export default function HeroSection() {
       .select('*')
       .eq('id', 1)
       .single()
-
     if (!error && data) setInfo(data)
   }
 
@@ -42,36 +42,47 @@ export default function HeroSection() {
 
   return (
     <section id="hero">
-      <div className="hero-badge">
-        {dday > 0 ? `D-${dday}` : dday === 0 ? 'D-Day 🎉' : `D+${Math.abs(dday)}`}
-      </div>
+      {/* 커버 사진 */}
+      {info.cover_image_url && (
+        <div className="hero-cover">
+          <img src={info.cover_image_url} alt="웨딩 커버" />
+          <div className="hero-cover-overlay" />
+        </div>
+      )}
 
-      <div className="hero-names">
-        <span className="groom">{info.groom_name}</span>
-        <span className="heart">♥</span>
-        <span className="bride">{info.bride_name}</span>
-      </div>
+      {/* 웨딩 정보 */}
+      <div className="hero-content">
+        <div className="hero-badge">
+          {dday > 0 ? `D-${dday}` : dday === 0 ? 'D-Day 🎉' : `D+${Math.abs(dday)}`}
+        </div>
 
-      <div className="hero-date">
-        {new Date(info.wedding_date).toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          weekday: 'long',
-        })} {info.wedding_time}
-      </div>
+        <div className="hero-names">
+          <span className="groom">{info.groom_name}</span>
+          <span className="heart">♥</span>
+          <span className="bride">{info.bride_name}</span>
+        </div>
 
-      <div className="hero-location">
-        <p>{info.venue_name}</p>
-        <p className="address">{info.venue_address}</p>
-      </div>
+        <div className="hero-date">
+          {new Date(info.wedding_date).toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+          })} {info.wedding_time}
+        </div>
 
-      <button
-        className="map-btn"
-        onClick={() => window.open(info.map_url, '_blank')}
-      >
-        📍 오시는 길
-      </button>
+        <div className="hero-location">
+          <p>{info.venue_name}</p>
+          <p className="address">{info.venue_address}</p>
+        </div>
+
+        <button
+          className="map-btn"
+          onClick={() => window.open(info.map_url, '_blank')}
+        >
+          📍 오시는 길
+        </button>
+      </div>
     </section>
   )
 }

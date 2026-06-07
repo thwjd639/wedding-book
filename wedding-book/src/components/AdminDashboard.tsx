@@ -21,6 +21,7 @@ interface WeddingInfo {
   venue_address: string
   map_url: string
   screenshot_protect: boolean
+  cover_image_url: string | null
 }
 
 interface Props {
@@ -37,6 +38,7 @@ export default function AdminDashboard({ onLogout }: Props) {
   const [saveMsg, setSaveMsg] = useState('')
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([])
   const [uploading, setUploading] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
 
   useEffect(() => {
     fetchEntries()
@@ -90,6 +92,41 @@ export default function AdminDashboard({ onLogout }: Props) {
       setTimeout(() => setSaveMsg(''), 2000)
     }
     setSaving(false)
+  }
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !info) return
+  
+    setUploadingCover(true)
+    const fileName = `cover_${Date.now()}_${file.name}`
+  
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('photos')
+      .upload(`cover/${fileName}`, file)
+  
+    console.log('uploadData:', uploadData)
+    console.log('uploadError:', uploadError)
+  
+    if (!uploadError && uploadData) {
+      const { data: urlData } = supabase.storage
+        .from('photos')
+        .getPublicUrl(uploadData.path)
+  
+      console.log('publicUrl:', urlData.publicUrl)
+  
+      const { error: updateError } = await supabase
+        .from('settings')
+        .update({ cover_image_url: urlData.publicUrl })
+        .eq('id', 1)
+  
+      console.log('updateError:', updateError)
+  
+      if (!updateError) setInfo({ ...info, cover_image_url: urlData.publicUrl })
+    }
+  
+    setUploadingCover(false)
+    e.target.value = ''
   }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -241,6 +278,26 @@ export default function AdminDashboard({ onLogout }: Props) {
       {/* 웨딩 정보 설정 탭 */}
       {tab === 'settings' && info && (
         <div className="settings-form">
+          <div className="settings-row">
+            <label>커버 사진</label>
+            {info.cover_image_url && (
+              <img
+                src={info.cover_image_url}
+                alt="커버"
+                style={{ width: '100%', borderRadius: '8px', marginBottom: '8px', maxHeight: '200px', objectFit: 'cover' }}
+              />
+            )}
+            <label className="upload-label" style={{ borderRadius: '8px', padding: '10px' }}>
+              {uploadingCover ? '업로드 중...' : '📷 커버 사진 변경'}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleCoverUpload}
+                disabled={uploadingCover}
+                hidden
+              />
+            </label>
+          </div>
           <div className="settings-row">
             <label>신랑 이름</label>
             <input

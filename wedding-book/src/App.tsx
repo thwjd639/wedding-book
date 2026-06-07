@@ -30,8 +30,13 @@ function App() {
         if (e.key === 'PrintScreen') e.preventDefault()
         if (e.ctrlKey && e.key === 'p') e.preventDefault()
       }
+      // 이미지 우클릭/드래그 방지
+      const handleImgContextMenu = (e: MouseEvent) => {
+        if ((e.target as HTMLElement).tagName === 'IMG') e.preventDefault()
+      }
 
       document.addEventListener('contextmenu', handleContextMenu)
+      document.addEventListener('contextmenu', handleImgContextMenu)
       document.addEventListener('dragstart', handleDragStart)
       document.addEventListener('keydown', handleKeyDown)
       document.body.style.userSelect = 'none'
@@ -39,6 +44,7 @@ function App() {
 
       return () => {
         document.removeEventListener('contextmenu', handleContextMenu)
+        document.removeEventListener('contextmenu', handleImgContextMenu)
         document.removeEventListener('dragstart', handleDragStart)
         document.removeEventListener('keydown', handleKeyDown)
         document.body.style.userSelect = ''

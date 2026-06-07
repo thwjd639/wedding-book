@@ -532,3 +532,10 @@ main {
   background: #e8e0d8;
   color: #999;
 }
+
+/* ── 캡처 방지 ── */
+.protect-on img {
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}

@@ -539,3 +539,20 @@ main {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* ── PDF 버튼 ── */
+.pdf-btn {
+  padding: 8px 20px;
+  background: #6ab187;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: opacity 0.2s;
+}
+
+.pdf-btn:hover {
+  opacity: 0.85;
+}

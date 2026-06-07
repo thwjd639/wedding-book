@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 interface Entry {
   id: string
@@ -127,6 +129,35 @@ export default function AdminDashboard({ onLogout }: Props) {
     setPhotos((prev) => prev.filter((p) => p.id !== id))
   }
 
+  async function handleExportPDF() {
+    const element = document.getElementById('guestbook-print')
+    if (!element) return
+  
+    const canvas = await html2canvas(element, { scale: 2 })
+    const imgData = canvas.toDataURL('image/png')
+  
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    const imgWidth = pageWidth
+    const imgHeight = (canvas.height * imgWidth) / canvas.width
+  
+    let heightLeft = imgHeight
+    let position = 0
+  
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+    heightLeft -= pageHeight
+  
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight
+      pdf.addPage()
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+    }
+  
+    pdf.save('방명록.pdf')
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
     onLogout()
@@ -176,12 +207,17 @@ export default function AdminDashboard({ onLogout }: Props) {
       {/* 방명록 탭 */}
       {tab === 'guestbook' && (
         <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button className="pdf-btn" onClick={handleExportPDF}>
+              📄 PDF 출력
+            </button>
+          </div>
           {loading ? (
             <p className="empty-msg">불러오는 중...</p>
           ) : entries.length === 0 ? (
             <p className="empty-msg">방명록이 없습니다.</p>
           ) : (
-            <div className="admin-list">
+            <div className="admin-list" id="guestbook-print">
               {entries.map((entry) => (
                 <div key={entry.id} className="admin-card">
                   <div className="admin-card-info">

@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { supabase } from '../lib/supabase'
 
+// ────────────────────────────────────────────
+// 타입
+// ────────────────────────────────────────────
 interface GuestbookEntry {
   id: string
   created_at: string
@@ -15,17 +18,124 @@ interface FormData {
   sender_name: string
   phone: string
   message: string
-  image: FileList
 }
 
+// ────────────────────────────────────────────
+// 슬라이드존 — 최신 5개 자동재생
+// ────────────────────────────────────────────
+function GuestbookSlide({ entries }: { entries: GuestbookEntry[] }) {
+  const [cur, setCur] = useState(0)
+  const [fade, setFade] = useState(true)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const slides = entries.slice(0, 5).filter((e) => e.message)
+
+  function goTo(idx: number) {
+    setFade(false)
+    setTimeout(() => {
+      setCur(idx)
+      setFade(true)
+    }, 300)
+  }
+
+  function startTimer() {
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setCur((prev) => {
+        const next = (prev + 1) % Math.max(slides.length, 1)
+        setFade(false)
+        setTimeout(() => setFade(true), 300)
+        return next
+      })
+    }, 4000)
+  }
+
+  useEffect(() => {
+    if (slides.length === 0) return
+    setCur(0)
+    startTimer()
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [entries])
+
+  if (slides.length === 0) return null
+
+  const entry = slides[cur]
+
+  return (
+    <div className="gb-slide-zone">
+      <p className="gb-slide-label">🏮 하객들이 남겨준 마음</p>
+      <div className={`gb-slide-card ${fade ? 'gb-fade-in' : 'gb-fade-out'}`}>
+        <p className="gb-slide-message">"{entry.message}"</p>
+        <p className="gb-slide-from">— {entry.sender_name ?? '익명'}</p>
+      </div>
+      <div className="gb-dots">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            className={`gb-dot ${i === cur ? 'gb-dot--active' : ''}`}
+            onClick={() => { goTo(i); startTimer() }}
+            aria-label={`${i + 1}번째 메시지 보기`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ────────────────────────────────────────────
+// 보드존 — 전체 타일
+// ────────────────────────────────────────────
+const TILE_COLORS = ['gb-tile--pink', 'gb-tile--teal', 'gb-tile--purple', 'gb-tile--amber']
+
+function GuestbookBoard({ entries }: { entries: GuestbookEntry[] }) {
+  return (
+    <div className="gb-board-zone">
+      <div className="gb-board-header">
+        <span className="gb-board-title">모두의 축하 메시지</span>
+        <span className="gb-board-count">{entries.length}명</span>
+      </div>
+      <div className="gb-board-grid">
+        {entries.map((entry, i) => (
+          <div
+            key={entry.id}
+            className={`gb-tile ${TILE_COLORS[i % TILE_COLORS.length]} ${i === 0 ? 'gb-tile--new' : ''}`}
+          >
+            <p className="gb-tile-message">
+              {entry.message
+                ? entry.message.slice(0, 30) + (entry.message.length > 30 ? '...' : '')
+                : '💌'}
+            </p>
+            <p className="gb-tile-name">{entry.sender_name ?? '익명'}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ────────────────────────────────────────────
+// 메인 섹션
+// ────────────────────────────────────────────
 export default function GuestbookSection() {
   const [entries, setEntries] = useState<GuestbookEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
 
   useEffect(() => {
     fetchEntries()
+
+    const channel = supabase
+      .channel('guestbook-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'guestbook' },
+        () => fetchEntries()
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   async function fetchEntries() {
@@ -41,53 +151,28 @@ export default function GuestbookSection() {
   async function onSubmit(data: FormData) {
     setSubmitting(true)
 
-    let image_url = null
-
-    // 사진 업로드 (선택)
-    if (data.image?.[0]) {
-      const file = data.image[0]
-      const fileName = `${Date.now()}_${file.name}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('photos')
-        .upload(`guestbook/${fileName}`, file)
-
-      if (!uploadError && uploadData) {
-        const { data: urlData } = supabase.storage
-          .from('photos')
-          .getPublicUrl(uploadData.path)
-        image_url = urlData.publicUrl
-      }
-    }
-
     const { error } = await supabase.from('guestbook').insert({
       sender_name: data.sender_name || null,
       phone: data.phone,
       message: data.message || null,
-      image_url,
+      image_url: null,
     })
 
     if (!error) {
       reset()
+      setSubmitted(true)
       fetchEntries()
+      setTimeout(() => setSubmitted(false), 3000)
     }
 
     setSubmitting(false)
-  }
-
-  function formatDate(dateStr: string) {
-    const d = new Date(dateStr)
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
-  }
-
-  function maskPhone(phone: string) {
-    return phone.replace(/(\d{3})-?(\d{3,4})-?(\d{4})/, '$1-****-$3')
   }
 
   return (
     <section id="guestbook">
       <h2>방명록</h2>
 
-      {/* 작성 폼 */}
+      {/* 1. 작성 폼 */}
       <form className="guestbook-form" onSubmit={handleSubmit(onSubmit)}>
         <input
           placeholder="보내는 이 (선택)"
@@ -103,46 +188,23 @@ export default function GuestbookSection() {
           rows={3}
           {...register('message')}
         />
-        <div className="form-bottom">
-          <label className="photo-label">
-            📷 사진 추가
-            <input type="file" accept="image/*" {...register('image')} hidden />
-          </label>
-          <button type="submit" className="submit-btn" disabled={submitting}>
-            {submitting ? '전송 중...' : '전송'}
-          </button>
-        </div>
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting ? '전송 중...' : '축하 메시지 남기기 💌'}
+        </button>
+        {submitted && <p className="form-success">축하 메시지가 등록됐어요 🎉</p>}
       </form>
 
-      {/* 피드 */}
-      <div className="guestbook-feed">
-        {loading ? (
-          <p className="empty-msg">불러오는 중...</p>
-        ) : entries.length === 0 ? (
-          <p className="empty-msg">첫 번째 방명록을 남겨보세요! 💌</p>
-        ) : (
-          entries.map((entry) => (
-            <div key={entry.id} className="guestbook-card">
-              <div className="card-header">
-                <div className="avatar">
-                  {entry.sender_name?.[0] ?? '?'}
-                </div>
-                <div>
-                  <p className="card-name">{entry.sender_name ?? '익명'}</p>
-                  <p className="card-phone">{maskPhone(entry.phone)}</p>
-                </div>
-                <span className="card-date">{formatDate(entry.created_at)}</span>
-              </div>
-              {entry.image_url && (
-                <img className="card-img" src={entry.image_url} alt="첨부 사진" />
-              )}
-              {entry.message && (
-                <p className="card-message">{entry.message}</p>
-              )}
-            </div>
-          ))
-        )}
-      </div>
+      {/* 2. 슬라이드존 */}
+      {!loading && <GuestbookSlide entries={entries} />}
+
+      {/* 3. 보드존 */}
+      {loading ? (
+        <p className="empty-msg">불러오는 중...</p>
+      ) : entries.length === 0 ? (
+        <p className="empty-msg">첫 번째 방명록을 남겨보세요! 💌</p>
+      ) : (
+        <GuestbookBoard entries={entries} />
+      )}
     </section>
   )
 }

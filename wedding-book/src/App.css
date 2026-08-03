@@ -676,9 +676,11 @@ main {
    관리자 대시보드
 ════════════════════════════ */
 .admin-dashboard {
+  width: 100%;
   max-width: 600px;
   margin: 0 auto;
   padding: 32px 24px;
+  box-sizing: border-box;
 }
 
 .admin-header {
@@ -733,6 +735,8 @@ main {
   flex-direction: column;
   gap: 12px;
   margin-top: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-card {
@@ -866,6 +870,8 @@ main {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .upload-label {

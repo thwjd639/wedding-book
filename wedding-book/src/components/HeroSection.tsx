@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import heroImage from '../assets/hero.png'
 import { weddingInfo } from '../data/weddingInfo'
+
+// public/hero-video.mp4 에 저화질(720p, 5~10초 루프, 5MB 이하 권장) 영상을 넣어주세요.
+const HERO_VIDEO_SRC = '/hero-video.mp4'
 
 function getDday(dateStr: string) {
   const weddingDate = new Date(dateStr + 'T12:00:00')
@@ -11,12 +15,26 @@ function getDday(dateStr: string) {
 
 export default function HeroSection() {
   const dday = getDday(weddingInfo.weddingDate)
+  const [videoFailed, setVideoFailed] = useState(false)
 
   return (
     <section id="hero">
-      {/* 커버 사진 (정적 에셋) */}
+      {/* 커버 배경: 정적 영상 (실패 시 정적 이미지로 폴백) */}
       <div className="hero-cover">
-        <img src={heroImage} alt="웨딩 커버" />
+        {!videoFailed ? (
+          <video
+            className="hero-cover-video"
+            src={HERO_VIDEO_SRC}
+            poster={heroImage}
+            autoPlay
+            loop
+            muted
+            playsInline
+            onError={() => setVideoFailed(true)}
+          />
+        ) : (
+          <img src={heroImage} alt="웨딩 커버" />
+        )}
         <div className="hero-cover-overlay" />
       </div>
 

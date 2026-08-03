@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import './App.css'
 import HeroSection from './components/HeroSection'
+import IntroSection from './components/IntroSection'
 import GallerySection from './components/GallerySection'
 import GuestbookSection from './components/GuestbookSection'
 import { weddingInfo } from './data/weddingInfo'
@@ -62,6 +63,7 @@ function App() {
   return (
     <main className={screenshotProtect ? 'protect-on' : ''}>
       <HeroSection />
+      <div className="fade-section"><IntroSection /></div>
       <div className="fade-section"><GallerySection /></div>
       <div className="fade-section"><GuestbookSection /></div>
     </main>

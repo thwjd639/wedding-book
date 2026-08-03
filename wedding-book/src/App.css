@@ -135,13 +135,99 @@ main {
   border-top: 1px solid #f0e8df;
 }
 
+#intro {
+  padding: 48px 24px;
+  border-top: 1px solid #f0e8df;
+}
+
 #gallery h2,
-#guestbook h2 {
+#guestbook h2,
+#intro h2 {
   font-size: 20px;
   text-align: center;
   color: #2c2c2c;
   margin-bottom: 24px;
   letter-spacing: 2px;
+}
+
+/* ════════════════════════════
+   신랑 신부 소개
+════════════════════════════ */
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.intro-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.intro-photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 14px;
+  background: #f4ede1;
+}
+
+.intro-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.intro-photo-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #b89b6f;
+  background: #f4ede1;
+}
+
+.intro-role {
+  font-size: 11px;
+  color: #b89b6f;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+}
+
+.intro-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c2c2c;
+  margin-bottom: 14px;
+}
+
+.intro-meta {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12.5px;
+  color: #777;
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+.intro-icon {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.intro-message {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #4a4a4a;
+}
+
+.intro-message strong {
+  color: #2c2c2c;
+  font-weight: 700;
 }
 
 .empty-msg {

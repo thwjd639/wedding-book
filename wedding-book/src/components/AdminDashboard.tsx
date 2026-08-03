@@ -43,8 +43,21 @@ export default function AdminDashboard({ onLogout }: Props) {
 
   async function handleDelete(id: string) {
     if (!confirm('정말 삭제할까요?')) return
-    const { error } = await supabase.from('guestbook').delete().eq('id', id)
-    if (!error) setEntries((prev) => prev.filter((e) => e.id !== id))
+    const { data, error } = await supabase
+      .from('guestbook')
+      .delete()
+      .eq('id', id)
+      .select()
+
+    if (error) {
+      alert('삭제에 실패했어요: ' + error.message)
+      return
+    }
+    if (!data || data.length === 0) {
+      alert('삭제 권한이 없어요. Supabase의 guestbook 테이블 DELETE 정책을 확인해주세요.')
+      return
+    }
+    setEntries((prev) => prev.filter((e) => e.id !== id))
   }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {

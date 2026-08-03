@@ -414,6 +414,14 @@ main {
   font-family: 'Noto Sans KR', sans-serif;
 }
 
+.char-count {
+  align-self: flex-end;
+  font-size: 11px;
+  color: #b3a998;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin-top: -4px;
+}
+
 .form-success {
   text-align: center;
   font-size: 13px;
@@ -488,6 +496,12 @@ main {
   color: #444;
   font-style: italic;
   max-width: 280px;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .gb-slide-from {

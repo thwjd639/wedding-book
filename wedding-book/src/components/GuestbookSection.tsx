@@ -121,7 +121,8 @@ export default function GuestbookSection() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormData>()
+  const messageValue = watch('message') ?? ''
 
   useEffect(() => {
     fetchEntries()
@@ -184,10 +185,15 @@ export default function GuestbookSection() {
         />
         {errors.phone && <span className="form-error">{errors.phone.message}</span>}
         <textarea
-          placeholder="따뜻한 한마디 남겨주세요 💌"
+          placeholder="따뜻한 한마디 남겨주세요 💌 (최대 150자)"
           rows={3}
-          {...register('message')}
+          maxLength={150}
+          {...register('message', {
+            maxLength: { value: 150, message: '150자 이내로 입력해주세요' },
+          })}
         />
+        <div className="char-count">{messageValue.length}/150</div>
+        {errors.message && <span className="form-error">{errors.message.message}</span>}
         <button type="submit" className="submit-btn" disabled={submitting}>
           {submitting ? '전송 중...' : '축하 메시지 남기기 💌'}
         </button>

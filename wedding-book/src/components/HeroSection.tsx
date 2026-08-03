@@ -2,9 +2,6 @@ import { useState } from 'react'
 import heroImage from '../assets/hero.png'
 import { weddingInfo } from '../data/weddingInfo'
 
-// public/hero-video.mp4 에 저화질(720p, 5~10초 루프, 5MB 이하 권장) 영상을 넣어주세요.
-const HERO_VIDEO_SRC = '/hero-video.mp4'
-
 function getDday(dateStr: string) {
   const weddingDate = new Date(dateStr + 'T12:00:00')
   const now = new Date()
@@ -16,15 +13,16 @@ function getDday(dateStr: string) {
 export default function HeroSection() {
   const dday = getDday(weddingInfo.weddingDate)
   const [videoFailed, setVideoFailed] = useState(false)
+  const hasVideo = Boolean(weddingInfo.heroVideoUrl) && !videoFailed
 
   return (
     <section id="hero">
-      {/* 커버 배경: 정적 영상 (실패 시 정적 이미지로 폴백) */}
+      {/* 커버 배경: Supabase Storage의 정적 영상 (URL 없거나 로드 실패 시 이미지 폴백) */}
       <div className="hero-cover">
-        {!videoFailed ? (
+        {hasVideo ? (
           <video
             className="hero-cover-video"
-            src={HERO_VIDEO_SRC}
+            src={weddingInfo.heroVideoUrl}
             poster={heroImage}
             autoPlay
             loop

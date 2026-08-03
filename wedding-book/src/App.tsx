@@ -1,23 +1,12 @@
-import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
+import { useEffect } from 'react'
 import './App.css'
 import HeroSection from './components/HeroSection'
 import GallerySection from './components/GallerySection'
 import GuestbookSection from './components/GuestbookSection'
+import { weddingInfo } from './data/weddingInfo'
 
 function App() {
-  const [screenshotProtect, setScreenshotProtect] = useState(false)
-
-  useEffect(() => {
-    supabase
-      .from('settings')
-      .select('screenshot_protect')
-      .eq('id', 1)
-      .single()
-      .then(({ data }) => {
-        if (data) setScreenshotProtect(data.screenshot_protect)
-      })
-  }, [])
+  const screenshotProtect = weddingInfo.screenshotProtect
 
   useEffect(() => {
     if (screenshotProtect) {

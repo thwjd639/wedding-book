@@ -12,18 +12,6 @@ interface Entry {
   image_url: string | null
 }
 
-interface WeddingInfo {
-  groom_name: string
-  bride_name: string
-  wedding_date: string
-  wedding_time: string
-  venue_name: string
-  venue_address: string
-  map_url: string
-  screenshot_protect: boolean
-  cover_image_url: string | null
-}
-
 interface Props {
   session: any
   onLogout: () => void
@@ -32,17 +20,12 @@ interface Props {
 export default function AdminDashboard({ onLogout }: Props) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'guestbook' | 'settings' | 'photos'>('guestbook')
-  const [info, setInfo] = useState<WeddingInfo | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [saveMsg, setSaveMsg] = useState('')
+  const [tab, setTab] = useState<'guestbook' | 'photos'>('guestbook')
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([])
   const [uploading, setUploading] = useState(false)
-  const [uploadingCover, setUploadingCover] = useState(false)
 
   useEffect(() => {
     fetchEntries()
-    fetchInfo()
     fetchPhotos()
   }, [])
 
@@ -55,78 +38,10 @@ export default function AdminDashboard({ onLogout }: Props) {
     setLoading(false)
   }
 
-  async function fetchInfo() {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 1)
-      .single()
-    if (!error && data) setInfo(data)
-  }
-
   async function handleDelete(id: string) {
     if (!confirm('정말 삭제할까요?')) return
     const { error } = await supabase.from('guestbook').delete().eq('id', id)
     if (!error) setEntries((prev) => prev.filter((e) => e.id !== id))
-  }
-
-  async function handleSaveInfo() {
-    if (!info) return
-    setSaving(true)
-    const { error } = await supabase
-      .from('settings')
-      .update({
-        groom_name: info.groom_name,
-        bride_name: info.bride_name,
-        wedding_date: info.wedding_date,
-        wedding_time: info.wedding_time,
-        venue_name: info.venue_name,
-        venue_address: info.venue_address,
-        map_url: info.map_url,
-        screenshot_protect: info.screenshot_protect,
-      })
-      .eq('id', 1)
-
-    if (!error) {
-      setSaveMsg('저장됐어요 ✅')
-      setTimeout(() => setSaveMsg(''), 2000)
-    }
-    setSaving(false)
-  }
-
-  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file || !info) return
-  
-    setUploadingCover(true)
-    const fileName = `cover_${Date.now()}_${file.name}`
-  
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('photos')
-      .upload(`cover/${fileName}`, file)
-  
-    console.log('uploadData:', uploadData)
-    console.log('uploadError:', uploadError)
-  
-    if (!uploadError && uploadData) {
-      const { data: urlData } = supabase.storage
-        .from('photos')
-        .getPublicUrl(uploadData.path)
-  
-      console.log('publicUrl:', urlData.publicUrl)
-  
-      const { error: updateError } = await supabase
-        .from('settings')
-        .update({ cover_image_url: urlData.publicUrl })
-        .eq('id', 1)
-  
-      console.log('updateError:', updateError)
-  
-      if (!updateError) setInfo({ ...info, cover_image_url: urlData.publicUrl })
-    }
-  
-    setUploadingCover(false)
-    e.target.value = ''
   }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -228,12 +143,6 @@ export default function AdminDashboard({ onLogout }: Props) {
           방명록 관리
         </button>
         <button
-          className={tab === 'settings' ? 'tab active' : 'tab'}
-          onClick={() => setTab('settings')}
-        >
-          웨딩 정보 설정
-        </button>
-        <button
           className={tab === 'photos' ? 'tab active' : 'tab'}
           onClick={() => setTab('photos')}
         >
@@ -275,107 +184,6 @@ export default function AdminDashboard({ onLogout }: Props) {
         </>
       )}
 
-      {/* 웨딩 정보 설정 탭 */}
-      {tab === 'settings' && info && (
-        <div className="settings-form">
-          <div className="settings-row">
-            <label>커버 사진</label>
-            {info.cover_image_url && (
-              <img
-                src={info.cover_image_url}
-                alt="커버"
-                style={{ width: '100%', borderRadius: '8px', marginBottom: '8px', maxHeight: '200px', objectFit: 'cover' }}
-              />
-            )}
-            <label className="upload-label" style={{ borderRadius: '8px', padding: '10px' }}>
-              {uploadingCover ? '업로드 중...' : '📷 커버 사진 변경'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleCoverUpload}
-                disabled={uploadingCover}
-                hidden
-              />
-            </label>
-          </div>
-          <div className="settings-row">
-            <label>신랑 이름</label>
-            <input
-              value={info.groom_name}
-              onChange={(e) => setInfo({ ...info, groom_name: e.target.value })}
-            />
-          </div>
-          <div className="settings-row">
-            <label>신부 이름</label>
-            <input
-              value={info.bride_name}
-              onChange={(e) => setInfo({ ...info, bride_name: e.target.value })}
-            />
-          </div>
-          <div className="settings-row">
-            <label>날짜</label>
-            <input
-              type="date"
-              value={info.wedding_date}
-              onChange={(e) => setInfo({ ...info, wedding_date: e.target.value })}
-            />
-          </div>
-          <div className="settings-row">
-            <label>시간</label>
-            <input
-              type="time"
-              value={info.wedding_time}
-              onChange={(e) => setInfo({ ...info, wedding_time: e.target.value })}
-            />
-          </div>
-          <div className="settings-row">
-            <label>장소 이름</label>
-            <input
-              value={info.venue_name}
-              onChange={(e) => setInfo({ ...info, venue_name: e.target.value })}
-            />
-          </div>
-          <div className="settings-row">
-            <label>장소 주소</label>
-            <input
-              value={info.venue_address}
-              onChange={(e) => setInfo({ ...info, venue_address: e.target.value })}
-            />
-          </div>
-          <div className="settings-row">
-            <label>지도 URL</label>
-            <input
-              value={info.map_url}
-              onChange={(e) => setInfo({ ...info, map_url: e.target.value })}
-            />
-          </div>
-          <div className="settings-row">
-            <label>캡처 방지</label>
-            <div className="toggle-wrap">
-              <span className="toggle-desc">
-                {info.screenshot_protect ? '🔒 캡처 방지 ON' : '🔓 캡처 방지 OFF'}
-              </span>
-              <button
-                className={`toggle-btn ${info.screenshot_protect ? 'on' : 'off'}`}
-                onClick={() => setInfo({ ...info, screenshot_protect: !info.screenshot_protect })}
-              >
-                {info.screenshot_protect ? 'ON' : 'OFF'}
-              </button>
-            </div>
-          </div>
-          <div className="settings-bottom">
-            {saveMsg && <span className="save-msg">{saveMsg}</span>}
-            <button
-              className="submit-btn"
-              onClick={handleSaveInfo}
-              disabled={saving}
-            >
-              {saving ? '저장 중...' : '저장'}
-            </button>
-          </div>
-        </div>
-      )}
-      
       {/* 사진 업로드 탭 */}        
       {tab === 'photos' && (
         <div className="photos-tab">

@@ -101,7 +101,9 @@ function GuestbookBoard({ entries }: { entries: GuestbookEntry[] }) {
             className={`gb-tile ${TILE_COLORS[i % TILE_COLORS.length]} ${i === 0 ? 'gb-tile--new' : ''}`}
           >
             <p className="gb-tile-message">
-              {entry.message ?? '💌'}
+              {entry.message
+                ? entry.message.slice(0, 30) + (entry.message.length > 30 ? '...' : '')
+                : '💌'}
             </p>
             <p className="gb-tile-name">{entry.sender_name ?? '익명'}</p>
           </div>

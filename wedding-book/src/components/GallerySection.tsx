@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { createPortal } from 'react-dom'
 
@@ -6,18 +6,16 @@ interface Photo {
   id: string
   url: string
   album_name: string
+  order_index: number | null
 }
+
+const PAGE_SIZE = 9
 
 export default function GallerySection() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState<string | null>(null)
-  const dragStartX = useRef(0)
-  const isDragging = useRef(false)
-  const sliderRef = useRef<HTMLDivElement>(null)
-  const isMouseDown = useRef(false)
-  const startX = useRef(0)
-  const scrollLeft = useRef(0)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
   useEffect(() => {
     fetchPhotos()
@@ -27,47 +25,43 @@ export default function GallerySection() {
     const { data, error } = await supabase
       .from('photos')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('order_index', { ascending: true, nullsFirst: false })
     if (!error && data) setPhotos(data)
     setLoading(false)
   }
 
-  function onMouseDown(e: React.MouseEvent) {
-    isMouseDown.current = true
-    isDragging.current = false
-    startX.current = e.pageX - (sliderRef.current?.offsetLeft ?? 0)
-    scrollLeft.current = sliderRef.current?.scrollLeft ?? 0
-  }
-  
-  function onMouseMove(e: React.MouseEvent) {
-    if (!isMouseDown.current) return
-    const x = e.pageX - (sliderRef.current?.offsetLeft ?? 0)
-    const walk = x - startX.current
-    if (Math.abs(walk) > 5) isDragging.current = true
-    if (sliderRef.current) sliderRef.current.scrollLeft = scrollLeft.current - walk
-  }
-  
-  function onMouseUp() {
-    isMouseDown.current = false
-  }
-
-  function openPhoto(url: string) {
-    setSelected(url)
+  function openPhoto(index: number) {
+    setSelectedIndex(index)
     document.body.style.overflow = 'hidden'
   }
 
   function closePhoto() {
-    setSelected(null)
+    setSelectedIndex(null)
     document.body.style.overflow = ''
+  }
+
+  function showPrev() {
+    setSelectedIndex((i) => (i === null ? null : (i - 1 + photos.length) % photos.length))
+  }
+
+  function showNext() {
+    setSelectedIndex((i) => (i === null ? null : (i + 1) % photos.length))
   }
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      if (selectedIndex === null) return
       if (e.key === 'Escape') closePhoto()
+      if (e.key === 'ArrowLeft') showPrev()
+      if (e.key === 'ArrowRight') showNext()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [selectedIndex, photos.length])
+
+  const visiblePhotos = photos.slice(0, visibleCount)
+  const hasMore = visibleCount < photos.length
+  const selectedPhoto = selectedIndex !== null ? photos[selectedIndex] : null
 
   return (
     <>
@@ -78,55 +72,56 @@ export default function GallerySection() {
         ) : photos.length === 0 ? (
           <p className="empty-msg">사진이 없습니다.</p>
         ) : (
-          <div
-            className="photo-slider"
-            ref={sliderRef}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseUp}
-          >
-            {photos.map((photo) => (
-              <div
-                key={photo.id}
-                className="photo-slide-item"
-                onMouseDown={(e) => {
-                  dragStartX.current = e.clientX
-                  isDragging.current = false
-                }}
-                onMouseMove={(e) => {
-                  if (Math.abs(e.clientX - dragStartX.current) > 5) {
-                    isDragging.current = true
-                  }
-                }}
-                onMouseUp={() => {
-                  if (!isDragging.current) openPhoto(photo.url)
-                }}
-                onTouchStart={(e) => {
-                  dragStartX.current = e.touches[0].clientX
-                  isDragging.current = false
-                }}
-                onTouchMove={(e) => {
-                  if (Math.abs(e.touches[0].clientX - dragStartX.current) > 5) {
-                    isDragging.current = true
-                  }
-                }}
-                onTouchEnd={() => {
-                  if (!isDragging.current) openPhoto(photo.url)
-                }}
+          <>
+            <div className="photo-grid">
+              {visiblePhotos.map((photo, index) => (
+                <button
+                  key={photo.id}
+                  className="photo-grid-item"
+                  onClick={() => openPhoto(index)}
+                  aria-label="사진 확대 보기"
+                >
+                  <img src={photo.url} alt="웨딩 사진" loading="lazy" draggable={false} />
+                </button>
+              ))}
+            </div>
+            {hasMore && (
+              <button
+                className="load-more-btn"
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
               >
-                <img src={photo.url} alt="웨딩 사진" draggable={false} />
-              </div>
-            ))}
-          </div>
+                더보기 ({photos.length - visibleCount}장 남음)
+              </button>
+            )}
+          </>
         )}
       </section>
 
       {/* 라이트박스 */}
-      {selected && createPortal(
+      {selectedPhoto && createPortal(
         <div className="lightbox" onClick={closePhoto}>
-          <img src={selected} alt="확대 사진" />
-          <button className="lightbox-close" onClick={closePhoto}>✕</button>
+          <div className="lightbox-inner" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedPhoto.url} alt="확대 사진" />
+            <button className="lightbox-close" onClick={closePhoto}>✕</button>
+            {photos.length > 1 && (
+              <>
+                <button
+                  className="lightbox-nav lightbox-prev"
+                  onClick={showPrev}
+                  aria-label="이전 사진"
+                >
+                  ‹
+                </button>
+                <button
+                  className="lightbox-nav lightbox-next"
+                  onClick={showNext}
+                  aria-label="다음 사진"
+                >
+                  ›
+                </button>
+              </>
+            )}
+          </div>
         </div>,
         document.body
       )}

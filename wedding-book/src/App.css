@@ -152,49 +152,51 @@ main {
 }
 
 /* ════════════════════════════
-   사진첩 슬라이더
+   사진첩 — 인스타그램 스타일 3x3 그리드
 ════════════════════════════ */
-.photo-slider {
-  display: flex;
-  gap: 10px;
-  overflow-x: scroll;
-  padding: 8px 4px 16px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  cursor: grab;
-  scroll-behavior: smooth;
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
 }
 
-.photo-slider:active {
-  cursor: grabbing;
-}
-
-.photo-slider::-webkit-scrollbar {
-  display: none;
-}
-
-.photo-slide-item {
-  flex-shrink: 0;
-  width: 200px;
-  height: 200px;
-  border-radius: 12px;
+.photo-grid-item {
+  aspect-ratio: 1;
   overflow: hidden;
-  scroll-snap-align: start;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  transition: transform 0.2s ease;
-  pointer-events: auto;
+  background: none;
+  display: block;
 }
 
-.photo-slide-item:hover {
-  transform: scale(1.03);
-}
-
-.photo-slide-item img {
+.photo-grid-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.photo-grid-item:hover img {
+  transform: scale(1.04);
+}
+
+.load-more-btn {
+  display: block;
+  margin: 20px auto 0;
+  padding: 10px 24px;
+  border: 1px solid #d8cfc1;
+  border-radius: 20px;
+  background: #fff;
+  color: #6b6355;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.load-more-btn:hover {
+  background: #faf6ef;
 }
 
 /* ════════════════════════════
@@ -245,6 +247,33 @@ main {
   align-items: center;
   justify-content: center;
   pointer-events: auto;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.lightbox-prev {
+  left: -12px;
+}
+
+.lightbox-next {
+  right: -12px;
 }
 
 /* ════════════════════════════
@@ -777,7 +806,7 @@ main {
 /* ════════════════════════════
    캡처 방지
 ════════════════════════════ */
-.protect-on .photo-slide-item img,
+.protect-on .photo-grid-item img,
 .protect-on .card-img,
 .protect-on .hero-cover img {
   pointer-events: none;

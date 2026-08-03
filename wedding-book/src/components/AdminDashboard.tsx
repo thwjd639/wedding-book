@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import SortablePhotoGrid, { type AdminPhoto } from './SortablePhotoGrid'
+import { compressImage } from '../lib/imageCompress'
 
 interface Entry {
   id: string
@@ -57,7 +58,8 @@ export default function AdminDashboard({ onLogout }: Props) {
     let nextOrderIndex =
       photos.length > 0 ? Math.max(...photos.map((p) => p.order_index ?? 0)) + 1 : 0
 
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      const file = await compressImage(rawFile)
       const fileName = `${Date.now()}_${file.name}`
 
       const { data: uploadData, error: uploadError } = await supabase.storage

@@ -24,6 +24,7 @@ export default function AdminDashboard({ onLogout }: Props) {
   const [tab, setTab] = useState<'guestbook' | 'photos'>('guestbook')
   const [photos, setPhotos] = useState<AdminPhoto[]>([])
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 })
 
   useEffect(() => {
     fetchEntries()
@@ -46,36 +47,41 @@ export default function AdminDashboard({ onLogout }: Props) {
   }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-  
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
     setUploading(true)
-    const fileName = `${Date.now()}_${file.name}`
-  
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('photos')
-      .upload(`wedding/${fileName}`, file)
-  
-    if (!uploadError && uploadData) {
-      const { data: urlData } = supabase.storage
+    setUploadProgress({ done: 0, total: files.length })
+
+    // 현재까지의 최대 order_index부터 이어서 순서를 매김
+    let nextOrderIndex =
+      photos.length > 0 ? Math.max(...photos.map((p) => p.order_index ?? 0)) + 1 : 0
+
+    for (const file of Array.from(files)) {
+      const fileName = `${Date.now()}_${file.name}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('photos')
-        .getPublicUrl(uploadData.path)
+        .upload(`wedding/${fileName}`, file)
 
-      // 업로드 순서가 기본 정렬 기준이 되도록 현재 최대 order_index + 1을 부여
-      const nextOrderIndex =
-        photos.length > 0
-          ? Math.max(...photos.map((p) => p.order_index ?? 0)) + 1
-          : 0
+      if (!uploadError && uploadData) {
+        const { data: urlData } = supabase.storage
+          .from('photos')
+          .getPublicUrl(uploadData.path)
 
-      const { error } = await supabase.from('photos').insert({
-        url: urlData.publicUrl,
-        album_name: '웨딩',
-        order_index: nextOrderIndex,
-      })
-  
-      if (!error) fetchPhotos()
+        await supabase.from('photos').insert({
+          url: urlData.publicUrl,
+          album_name: '웨딩',
+          order_index: nextOrderIndex,
+        })
+
+        nextOrderIndex += 1
+      }
+
+      setUploadProgress((prev) => ({ done: prev.done + 1, total: prev.total }))
     }
-  
+
+    await fetchPhotos()
     setUploading(false)
     e.target.value = ''
   }
@@ -206,10 +212,11 @@ export default function AdminDashboard({ onLogout }: Props) {
       {tab === 'photos' && (
         <div className="photos-tab">
           <label className="upload-label">
-            {uploading ? '업로드 중...' : '📷 사진 추가'}
+            {uploading ? `업로드 중... (${uploadProgress.done}/${uploadProgress.total})` : '📷 사진 추가 (여러 장 선택 가능)'}
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={handlePhotoUpload}
               disabled={uploading}
               hidden

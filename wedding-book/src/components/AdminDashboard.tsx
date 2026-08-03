@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import SortablePhotoGrid, { type AdminPhoto } from './SortablePhotoGrid'
 
 interface Entry {
   id: string
@@ -21,7 +22,7 @@ export default function AdminDashboard({ onLogout }: Props) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'guestbook' | 'photos'>('guestbook')
-  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([])
+  const [photos, setPhotos] = useState<AdminPhoto[]>([])
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
@@ -59,10 +60,17 @@ export default function AdminDashboard({ onLogout }: Props) {
       const { data: urlData } = supabase.storage
         .from('photos')
         .getPublicUrl(uploadData.path)
-  
+
+      // 업로드 순서가 기본 정렬 기준이 되도록 현재 최대 order_index + 1을 부여
+      const nextOrderIndex =
+        photos.length > 0
+          ? Math.max(...photos.map((p) => p.order_index ?? 0)) + 1
+          : 0
+
       const { error } = await supabase.from('photos').insert({
         url: urlData.publicUrl,
         album_name: '웨딩',
+        order_index: nextOrderIndex,
       })
   
       if (!error) fetchPhotos()
@@ -79,6 +87,16 @@ export default function AdminDashboard({ onLogout }: Props) {
     await supabase.storage.from('photos').remove([path])
     await supabase.from('photos').delete().eq('id', id)
     setPhotos((prev) => prev.filter((p) => p.id !== id))
+  }
+
+  // 드래그로 순서를 바꾸면 화면에 즉시 반영하고, 바뀐 순서를 order_index로 일괄 저장
+  async function handlePhotoReorder(next: AdminPhoto[]) {
+    setPhotos(next)
+    await Promise.all(
+      next.map((photo, index) =>
+        supabase.from('photos').update({ order_index: index }).eq('id', photo.id)
+      )
+    )
   }
 
   async function handleExportPDF() {
@@ -123,7 +141,7 @@ export default function AdminDashboard({ onLogout }: Props) {
     const { data, error } = await supabase
       .from('photos')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('order_index', { ascending: true, nullsFirst: false })
     if (!error && data) setPhotos(data)
   }
 
@@ -198,19 +216,12 @@ export default function AdminDashboard({ onLogout }: Props) {
             />
           </label>
 
-          <div className="admin-photo-grid">
-            {photos.map((photo) => (
-              <div key={photo.id} className="admin-photo-item">
-                <img src={photo.url} alt="웨딩 사진" />
-                <button
-                  className="photo-delete-btn"
-                  onClick={() => handlePhotoDelete(photo.id, photo.url)}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
+          <p className="drag-hint">사진을 꾹 눌러 드래그하면 순서를 바꿀 수 있어요.</p>
+          <SortablePhotoGrid
+            photos={photos}
+            onReorder={handlePhotoReorder}
+            onDelete={handlePhotoDelete}
+          />
         </div>
       )}
     </div>

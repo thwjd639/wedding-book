@@ -733,6 +733,12 @@ main {
   opacity: 0.85;
 }
 
+.drag-hint {
+  font-size: 12px;
+  color: #999;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
 .admin-photo-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

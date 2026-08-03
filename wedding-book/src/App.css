@@ -363,31 +363,49 @@ main {
 }
 
 /* ════════════════════════════
-   방명록 — 작성 폼
+   방명록 — 작성 폼 (코르크보드 시안)
 ════════════════════════════ */
 .guestbook-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
+  background: #fffdf9;
+  padding: 18px 16px 16px;
+  border-radius: 3px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  transform: rotate(-0.5deg);
+  position: relative;
+}
+
+.guestbook-form::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%) rotate(3deg);
+  width: 40px;
+  height: 16px;
+  background: rgba(227, 168, 87, 0.5);
+  border: 1px solid rgba(156, 107, 34, 0.25);
 }
 
 .guestbook-form input,
 .guestbook-form textarea {
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid #e8ddd5;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px;
   font-family: 'Noto Sans KR', sans-serif;
-  background: #fffdf9;
+  background: #fdf9f2;
   outline: none;
   resize: none;
 }
 
 .guestbook-form input:focus,
 .guestbook-form textarea:focus {
-  border-color: #c9856a;
+  border-color: #7c9473;
 }
 
 .form-error {
@@ -399,26 +417,19 @@ main {
 .form-success {
   text-align: center;
   font-size: 13px;
-  color: #0f6e56;
+  color: #4e6247;
   font-family: 'Noto Sans KR', sans-serif;
   animation: gb-pop 0.3s ease;
 }
-
-/* 색상 선택 */
-
-
-
-
-
 
 /* 전송 버튼 */
 .submit-btn {
   width: 100%;
   padding: 12px;
-  background: #c9856a;
+  background: #9c6b22;
   color: #fff;
   border: none;
-  border-radius: 24px;
+  border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -441,7 +452,7 @@ main {
 
 .gb-slide-label {
   font-size: 0.75rem;
-  color: #D4537E;
+  color: #9c6b22;
   margin-bottom: 0.75rem;
   letter-spacing: 0.05em;
   font-family: 'Noto Sans KR', sans-serif;
@@ -506,37 +517,39 @@ main {
 .gb-dot--active {
   width: 16px;
   border-radius: 3px;
-  background: #d4537e;
+  background: #9c6b22;
 }
 
 /* ════════════════════════════
-   방명록 — 보드존
+   방명록 — 보드존 (코르크보드 시안)
 ════════════════════════════ */
 .gb-board-zone {
   margin-top: 1.5rem;
-  background: #ffffff;
-  border: 1px solid #ede8e3;
-  border-radius: 16px;
-  padding: 1.25rem;
+  background: #d9cbae;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 7px 7px;
+  border-radius: 12px;
+  padding: 1.25rem 0.875rem 1.5rem;
 }
 
 .gb-board-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.875rem;
+  padding: 0 0.25rem;
 }
 
 .gb-board-title {
   font-size: 0.875rem;
-  color: #444;
+  color: #4a3f2f;
   font-family: 'Noto Sans KR', sans-serif;
 }
 
 .gb-board-count {
   font-size: 0.75rem;
-  background: #fbeaf0;
-  color: #993556;
+  background: #fdf9f2;
+  color: #9c6b22;
   padding: 2px 10px;
   border-radius: 99px;
   font-family: 'Noto Sans KR', sans-serif;
@@ -544,16 +557,39 @@ main {
 
 .gb-board-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 12px;
 }
 
 .gb-tile {
-  border-radius: 10px;
-  padding: 8px 10px;
+  position: relative;
+  border-radius: 2px;
+  padding: 14px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+}
+
+.gb-tile::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f0958a, #c0433a);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.gb-tile:nth-child(odd) {
+  transform: rotate(-2deg);
+}
+
+.gb-tile:nth-child(even) {
+  transform: rotate(2deg);
 }
 
 .gb-tile--new {
@@ -565,24 +601,24 @@ main {
   100% { transform: scale(1);   opacity: 1; }
 }
 
-.gb-tile--pink   { background: #fbeaf0; }
-.gb-tile--teal   { background: #e1f5ee; }
-.gb-tile--purple { background: #eeedfe; }
-.gb-tile--amber  { background: #faeeda; }
+.gb-tile--pink   { background: #f6e6e6; }
+.gb-tile--teal   { background: #e9f1e3; }
+.gb-tile--purple { background: #fffdf8; }
+.gb-tile--amber  { background: #fbefdd; }
 
-.gb-tile--pink .gb-tile-message   { color: #72243E; }
-.gb-tile--teal .gb-tile-message   { color: #085041; }
-.gb-tile--purple .gb-tile-message { color: #3C3489; }
-.gb-tile--amber .gb-tile-message  { color: #633806; }
+.gb-tile--pink .gb-tile-message   { color: #8b4b4b; }
+.gb-tile--teal .gb-tile-message   { color: #4e6247; }
+.gb-tile--purple .gb-tile-message { color: #4a4234; }
+.gb-tile--amber .gb-tile-message  { color: #9c6b22; }
 
-.gb-tile--pink .gb-tile-name   { color: #993556; }
-.gb-tile--teal .gb-tile-name   { color: #0F6E56; }
-.gb-tile--purple .gb-tile-name { color: #534AB7; }
-.gb-tile--amber .gb-tile-name  { color: #854F0B; }
+.gb-tile--pink .gb-tile-name   { color: #a56060; }
+.gb-tile--teal .gb-tile-name   { color: #6a7d61; }
+.gb-tile--purple .gb-tile-name { color: #8a7f68; }
+.gb-tile--amber .gb-tile-name  { color: #b3872f; }
 
 .gb-tile-message {
-  font-size: 0.7rem;
-  line-height: 1.5;
+  font-size: 0.72rem;
+  line-height: 1.55;
   word-break: break-all;
   font-family: 'Noto Sans KR', sans-serif;
 }
@@ -590,6 +626,7 @@ main {
 .gb-tile-name {
   font-size: 0.65rem;
   margin-top: auto;
+  text-align: right;
   font-family: 'Noto Sans KR', sans-serif;
 }
 

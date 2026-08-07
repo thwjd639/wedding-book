@@ -4,6 +4,7 @@ import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import SortablePhotoGrid, { type AdminPhoto } from './SortablePhotoGrid'
 import { compressImage } from '../lib/imageCompress'
+import { weddingInfo } from '../data/weddingInfo'
 
 interface Entry {
   id: string
@@ -123,8 +124,21 @@ export default function AdminDashboard({ onLogout }: Props) {
   async function handleExportPDF() {
     const element = document.getElementById('guestbook-print')
     if (!element) return
-  
-    const canvas = await html2canvas(element, { scale: 2 })
+
+    // 이미지가 다 로드된 후에 캡처해야 누락 없이 찍힘
+    const images = Array.from(element.querySelectorAll('img'))
+    await Promise.all(
+      images.map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise((resolve) => {
+              img.onload = resolve
+              img.onerror = resolve
+            })
+      )
+    )
+
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true })
     const imgData = canvas.toDataURL('image/png')
   
     const pdf = new jsPDF('p', 'mm', 'a4')
@@ -202,9 +216,12 @@ export default function AdminDashboard({ onLogout }: Props) {
           ) : entries.length === 0 ? (
             <p className="empty-msg">방명록이 없습니다.</p>
           ) : (
-            <div className="admin-list" id="guestbook-print">
+            <div className="admin-list">
               {entries.map((entry) => (
                 <div key={entry.id} className="admin-card">
+                  {entry.image_url && (
+                    <img className="admin-card-photo" src={entry.image_url} alt="첨부 사진" loading="lazy" />
+                  )}
                   <div className="admin-card-info">
                     <p className="card-name">{entry.sender_name ?? '익명'}</p>
                     <p className="card-phone">{maskPhone(entry.phone)}</p>
@@ -246,6 +263,25 @@ export default function AdminDashboard({ onLogout }: Props) {
           />
         </div>
       )}
+
+      {/* PDF 출력 전용 템플릿 (화면에는 안 보이고 캡처용으로만 렌더링) */}
+      <div className="pdf-template" id="guestbook-print">
+        <p className="pdf-title">{weddingInfo.groomName} ♥ {weddingInfo.brideName}</p>
+        <p className="pdf-subtitle">우리 결혼합니다 — 방명록</p>
+        <div className="pdf-grid">
+          {entries.map((entry) => (
+            <div key={entry.id} className="pdf-card">
+              {entry.image_url && (
+                <img className="pdf-card-photo" src={entry.image_url} alt="" crossOrigin="anonymous" />
+              )}
+              <div className="pdf-card-body">
+                {entry.message && <p className="pdf-card-message">{entry.message}</p>}
+                <p className="pdf-card-name">— {entry.sender_name ?? '익명'}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

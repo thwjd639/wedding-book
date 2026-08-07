@@ -916,6 +916,15 @@ main {
   background: #fff;
 }
 
+.admin-card-photo {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #f0e8df;
+}
+
 .admin-card-info {
   display: flex;
   flex-direction: column;
@@ -1149,4 +1158,75 @@ main {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+}
+
+/* ════════════════════════════
+   PDF 출력 전용 템플릿 (화면 밖에 렌더링, html2canvas 캡처용)
+════════════════════════════ */
+.pdf-template {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 800px;
+  padding: 48px 40px;
+  background: #fffdf9;
+  font-family: 'Noto Serif KR', serif;
+}
+
+.pdf-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: #2c2c2c;
+  margin: 0 0 6px;
+}
+
+.pdf-subtitle {
+  text-align: center;
+  font-size: 13px;
+  color: #b89b6f;
+  letter-spacing: 3px;
+  margin: 0 0 36px;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.pdf-card {
+  border: 1px solid #ece3d5;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  break-inside: avoid;
+}
+
+.pdf-card-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+
+.pdf-card-body {
+  padding: 16px;
+}
+
+.pdf-card-message {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #3a362f;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  margin: 0 0 10px;
+}
+
+.pdf-card-name {
+  font-size: 12.5px;
+  color: #9c6b22;
+  text-align: right;
+  font-style: italic;
+  margin: 0;
 }

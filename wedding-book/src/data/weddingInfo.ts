@@ -10,7 +10,8 @@ export const weddingInfo = {
   mapUrl: 'https://map.naver.com/p/search/그랜드조선제주',
   screenshotProtect: true, // 캡처 방지 켜고 싶으면 true로
   heroVideoUrl: 'https://jkudxgmunztnuvpbwxkd.supabase.co/storage/v1/object/public/photos/hero/hero-video.MP4',
-  guestbookFrameUrl: 'https://jkudxgmunztnuvpbwxkd.supabase.co/storage/v1/object/public/photos/hero/photo-frame.png'
+  guestbookFrameUrl: 'https://jkudxgmunztnuvpbwxkd.supabase.co/storage/v1/object/public/photos/hero/photo-frame.png',
+  introImageUrl: 'https://jkudxgmunztnuvpbwxkd.supabase.co/storage/v1/object/public/photos/hero/intro-image.png',
 } as const
 
 export type WeddingInfo = typeof weddingInfo

@@ -69,3 +69,34 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     img.src = url
   })
 }
+
+// 합성된 사진을 하객 폰에 저장. 가능하면 공유시트(사진에 저장 포함)를 띄우고,
+// 지원 안 되는 환경에서는 일반 다운로드로 폴백합니다.
+export async function savePhotoToDevice(blob: Blob) {
+  const fileName = `wedding-photo-${Date.now()}.jpg`
+  const file = new File([blob], fileName, { type: 'image/jpeg' })
+
+  const nav = navigator as Navigator & {
+    canShare?: (data: { files: File[] }) => boolean
+    share?: (data: { files: File[] }) => Promise<void>
+  }
+
+  if (nav.canShare?.({ files: [file] }) && nav.share) {
+    try {
+      await nav.share({ files: [file] })
+      return
+    } catch {
+      // 사용자가 공유를 취소한 경우 등 - 다운로드로 폴백하지 않고 조용히 종료
+      return
+    }
+  }
+
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}

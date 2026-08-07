@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { composePhotoFromVideo } from '../lib/photoFrame'
+import { composePhotoFromVideo, savePhotoToDevice } from '../lib/photoFrame'
 
 interface Props {
   frameUrl: string
@@ -107,6 +107,12 @@ export default function CameraCapture({ frameUrl, onConfirm, onClose }: Props) {
             </div>
             <div className="camera-actions">
               <button className="camera-btn camera-btn--ghost" onClick={handleRetake}>다시 찍기</button>
+              <button
+                className="camera-btn camera-btn--ghost"
+                onClick={() => previewBlob && savePhotoToDevice(previewBlob)}
+              >
+                💾 저장
+              </button>
               <button className="camera-btn camera-btn--primary" onClick={handleConfirm}>이 사진 사용</button>
             </div>
           </>

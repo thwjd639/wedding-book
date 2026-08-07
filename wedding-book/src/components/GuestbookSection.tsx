@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { supabase } from '../lib/supabase'
-import { composePhotoWithFrame } from '../lib/photoFrame'
+import { composePhotoWithFrame, savePhotoToDevice } from '../lib/photoFrame'
 import { weddingInfo } from '../data/weddingInfo'
 import CameraCapture from './CameraCapture'
 
@@ -267,6 +267,9 @@ export default function GuestbookSection() {
             <div className="gb-photo-actions">
               <button type="button" onClick={handleAddPhotoClick}>
                 다시 찍기
+              </button>
+              <button type="button" onClick={() => photoBlob && savePhotoToDevice(photoBlob)}>
+                💾 저장
               </button>
               <button type="button" onClick={removePhoto}>
                 사진 빼기

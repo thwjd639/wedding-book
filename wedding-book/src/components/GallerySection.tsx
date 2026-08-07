@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { createPortal } from 'react-dom'
 
@@ -63,6 +63,33 @@ export default function GallerySection() {
   const hasMore = visibleCount < photos.length
   const selectedPhoto = selectedIndex !== null ? photos[selectedIndex] : null
 
+  // 스와이프 제스처 (드래그 추종 + 일정 거리 넘으면 다음/이전 사진)
+  const [dragX, setDragX] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const dragStartX = useRef(0)
+  const SWIPE_THRESHOLD = 60
+
+  function handlePointerDown(e: React.PointerEvent) {
+    dragStartX.current = e.clientX
+    setDragging(true)
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    if (!dragging) return
+    setDragX(e.clientX - dragStartX.current)
+  }
+
+  function endDrag() {
+    if (!dragging) return
+    setDragging(false)
+    if (dragX > SWIPE_THRESHOLD) {
+      showPrev()
+    } else if (dragX < -SWIPE_THRESHOLD) {
+      showNext()
+    }
+    setDragX(0)
+  }
+
   return (
     <>
       <section id="gallery">
@@ -100,8 +127,24 @@ export default function GallerySection() {
       {/* 라이트박스 */}
       {selectedPhoto && createPortal(
         <div className="lightbox" onClick={closePhoto}>
-          <div className="lightbox-inner" onClick={(e) => e.stopPropagation()}>
-            <img src={selectedPhoto.url} alt="확대 사진" />
+          <div
+            className="lightbox-inner"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={endDrag}
+            onPointerLeave={endDrag}
+          >
+            <img
+              src={selectedPhoto.url}
+              alt="확대 사진"
+              style={{
+                transform: `translateX(${dragX}px)`,
+                transition: dragging ? 'none' : 'transform 0.25s ease',
+                touchAction: 'pan-y',
+              }}
+              draggable={false}
+            />
             <button className="lightbox-close" onClick={closePhoto}>✕</button>
             {photos.length > 1 && (
               <>

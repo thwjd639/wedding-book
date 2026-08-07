@@ -422,6 +422,60 @@ main {
   margin-top: -4px;
 }
 
+.gb-photo-btn {
+  padding: 10px;
+  border: 1px dashed #d8cfc1;
+  border-radius: 4px;
+  background: #fdf9f2;
+  color: #6b5f4f;
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+}
+
+.gb-photo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.gb-photo-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.gb-photo-preview img {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #e8ddd5;
+}
+
+.gb-photo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.gb-photo-actions button {
+  padding: 6px 12px;
+  border: 1px solid #d8cfc1;
+  border-radius: 20px;
+  background: #fff;
+  color: #6b5f4f;
+  font-size: 12px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+}
+
+.gb-tile-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
 .form-success {
   text-align: center;
   font-size: 13px;

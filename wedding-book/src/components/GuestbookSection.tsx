@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { supabase } from '../lib/supabase'
+import { composePhotoWithFrame } from '../lib/photoFrame'
+import { weddingInfo } from '../data/weddingInfo'
 
 // ────────────────────────────────────────────
 // 타입
@@ -100,6 +102,9 @@ function GuestbookBoard({ entries }: { entries: GuestbookEntry[] }) {
             key={entry.id}
             className={`gb-tile ${TILE_COLORS[i % TILE_COLORS.length]} ${i === 0 ? 'gb-tile--new' : ''}`}
           >
+            {entry.image_url && (
+              <img className="gb-tile-photo" src={entry.image_url} alt="하객 사진" loading="lazy" />
+            )}
             <p className="gb-tile-message">
               {entry.message
                 ? entry.message.slice(0, 30) + (entry.message.length > 30 ? '...' : '')
@@ -123,6 +128,36 @@ export default function GuestbookSection() {
   const [submitted, setSubmitted] = useState(false)
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormData>()
   const messageValue = watch('message') ?? ''
+
+  // 방명록 첨부 사진 (촬영 → 프레임 합성 → 미리보기)
+  const [photoBlob, setPhotoBlob] = useState<Blob | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [composing, setComposing] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
+  async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setComposing(true)
+    try {
+      const blob = await composePhotoWithFrame(file, weddingInfo.guestbookFrameUrl)
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
+      setPhotoBlob(blob)
+      setPhotoPreview(URL.createObjectURL(blob))
+    } catch {
+      alert('사진 처리에 실패했어요. 다시 시도해주세요.')
+    } finally {
+      setComposing(false)
+      e.target.value = ''
+    }
+  }
+
+  function removePhoto() {
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+    setPhotoBlob(null)
+    setPhotoPreview(null)
+  }
 
   useEffect(() => {
     fetchEntries()
@@ -152,15 +187,29 @@ export default function GuestbookSection() {
   async function onSubmit(data: FormData) {
     setSubmitting(true)
 
+    let imageUrl: string | null = null
+    if (photoBlob) {
+      const fileName = `guestbook/${Date.now()}.jpg`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(fileName, photoBlob, { contentType: 'image/jpeg' })
+
+      if (!uploadError && uploadData) {
+        const { data: urlData } = supabase.storage.from('photos').getPublicUrl(uploadData.path)
+        imageUrl = urlData.publicUrl
+      }
+    }
+
     const { error } = await supabase.from('guestbook').insert({
       sender_name: data.sender_name || null,
       phone: data.phone,
       message: data.message || null,
-      image_url: null,
+      image_url: imageUrl,
     })
 
     if (!error) {
       reset()
+      removePhoto()
       setSubmitted(true)
       fetchEntries()
       setTimeout(() => setSubmitted(false), 3000)
@@ -194,6 +243,39 @@ export default function GuestbookSection() {
         />
         <div className="char-count">{messageValue.length}/150</div>
         {errors.message && <span className="form-error">{errors.message.message}</span>}
+
+        {/* 사진 첨부 (선택) */}
+        {photoPreview ? (
+          <div className="gb-photo-preview">
+            <img src={photoPreview} alt="첨부한 사진 미리보기" />
+            <div className="gb-photo-actions">
+              <button type="button" onClick={() => photoInputRef.current?.click()}>
+                다시 찍기
+              </button>
+              <button type="button" onClick={removePhoto}>
+                사진 빼기
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="gb-photo-btn"
+            onClick={() => photoInputRef.current?.click()}
+            disabled={composing}
+          >
+            {composing ? '사진 처리 중...' : '📸 사진 추가 (선택)'}
+          </button>
+        )}
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handlePhotoSelect}
+          hidden
+        />
+
         <button type="submit" className="submit-btn" disabled={submitting}>
           {submitting ? '전송 중...' : '축하 메시지 남기기 💌'}
         </button>

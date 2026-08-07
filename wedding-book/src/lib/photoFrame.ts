@@ -1,11 +1,31 @@
 // 하객이 찍은 사진을 정사각형 프레임(그레타 프레임)에 합성합니다.
-// 프레임 이미지는 1080x1080 PNG, 가운데 (80,80)~(1000,1000) 영역이 투명해야 합니다.
+// 프레임 이미지는 1080x1080 PNG, 사진과 겹쳐질 자리를 제외한 부분은 투명해야 합니다.
 const CANVAS_SIZE = 1080
-const WINDOW = { x: 80, y: 80, size: 920 } // 사진이 들어갈 투명 창 영역
 
 export async function composePhotoWithFrame(
   photoFile: File,
   frameUrl: string
+): Promise<Blob> {
+  const bitmap = await createImageBitmap(photoFile)
+  return composeFromSource(bitmap, bitmap.width, bitmap.height, frameUrl)
+}
+
+// 카메라 미리보기(video 엘리먼트)에서 현재 프레임을 그대로 캡처해 합성
+// mirror: 전면 카메라 프리뷰가 거울모드(좌우반전)로 보였다면 true로 넘겨서 결과물도 동일하게 반전
+export async function composePhotoFromVideo(
+  video: HTMLVideoElement,
+  frameUrl: string,
+  mirror: boolean
+): Promise<Blob> {
+  return composeFromSource(video, video.videoWidth, video.videoHeight, frameUrl, mirror)
+}
+
+async function composeFromSource(
+  source: CanvasImageSource,
+  srcWidth: number,
+  srcHeight: number,
+  frameUrl: string,
+  mirror = false
 ): Promise<Blob> {
   const canvas = document.createElement('canvas')
   canvas.width = CANVAS_SIZE
@@ -13,26 +33,19 @@ export async function composePhotoWithFrame(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('캔버스를 초기화할 수 없어요')
 
-  const photoBitmap = await createImageBitmap(photoFile)
+  // 정사각형으로 가운데 크롭 (object-fit: cover와 동일한 방식)
+  const cropSize = Math.min(srcWidth, srcHeight)
+  const cropX = (srcWidth - cropSize) / 2
+  const cropY = (srcHeight - cropSize) / 2
 
-  // 사진을 정사각형 창에 꽉 채우도록 크롭(object-fit: cover와 동일한 방식)
-  const srcSize = Math.min(photoBitmap.width, photoBitmap.height)
-  const srcX = (photoBitmap.width - srcSize) / 2
-  const srcY = (photoBitmap.height - srcSize) / 2
+  if (mirror) {
+    ctx.save()
+    ctx.translate(CANVAS_SIZE, 0)
+    ctx.scale(-1, 1)
+  }
+  ctx.drawImage(source, cropX, cropY, cropSize, cropSize, 0, 0, CANVAS_SIZE, CANVAS_SIZE)
+  if (mirror) ctx.restore()
 
-  ctx.drawImage(
-    photoBitmap,
-    srcX,
-    srcY,
-    srcSize,
-    srcSize,
-    WINDOW.x,
-    WINDOW.y,
-    WINDOW.size,
-    WINDOW.size
-  )
-
-  // 프레임이 등록돼 있으면 사진 위에 겹쳐 그림 (없으면 사진만 남음)
   if (frameUrl) {
     const frameImg = await loadImage(frameUrl)
     ctx.drawImage(frameImg, 0, 0, CANVAS_SIZE, CANVAS_SIZE)

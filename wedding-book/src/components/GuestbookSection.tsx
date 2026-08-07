@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { supabase } from '../lib/supabase'
 import { composePhotoWithFrame } from '../lib/photoFrame'
 import { weddingInfo } from '../data/weddingInfo'
+import CameraCapture from './CameraCapture'
 
 // ────────────────────────────────────────────
 // 타입
@@ -133,7 +134,24 @@ export default function GuestbookSection() {
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [composing, setComposing] = useState(false)
+  const [cameraOpen, setCameraOpen] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
+
+  function setPhoto(blob: Blob) {
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+    setPhotoBlob(blob)
+    setPhotoPreview(URL.createObjectURL(blob))
+  }
+
+  function handleAddPhotoClick() {
+    // 브라우저가 실시간 카메라 미리보기를 지원하면 자체 카메라 화면을 띄우고,
+    // 아니면 기존 방식(기기 기본 카메라 앱 호출)으로 폴백
+    if (navigator.mediaDevices) {
+      setCameraOpen(true)
+    } else {
+      photoInputRef.current?.click()
+    }
+  }
 
   async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -142,9 +160,7 @@ export default function GuestbookSection() {
     setComposing(true)
     try {
       const blob = await composePhotoWithFrame(file, weddingInfo.guestbookFrameUrl)
-      if (photoPreview) URL.revokeObjectURL(photoPreview)
-      setPhotoBlob(blob)
-      setPhotoPreview(URL.createObjectURL(blob))
+      setPhoto(blob)
     } catch {
       alert('사진 처리에 실패했어요. 다시 시도해주세요.')
     } finally {
@@ -249,7 +265,7 @@ export default function GuestbookSection() {
           <div className="gb-photo-preview">
             <img src={photoPreview} alt="첨부한 사진 미리보기" />
             <div className="gb-photo-actions">
-              <button type="button" onClick={() => photoInputRef.current?.click()}>
+              <button type="button" onClick={handleAddPhotoClick}>
                 다시 찍기
               </button>
               <button type="button" onClick={removePhoto}>
@@ -261,7 +277,7 @@ export default function GuestbookSection() {
           <button
             type="button"
             className="gb-photo-btn"
-            onClick={() => photoInputRef.current?.click()}
+            onClick={handleAddPhotoClick}
             disabled={composing}
           >
             {composing ? '사진 처리 중...' : '📸 사진 추가 (선택)'}
@@ -281,6 +297,17 @@ export default function GuestbookSection() {
         </button>
         {submitted && <p className="form-success">축하 메시지가 등록됐어요 🎉</p>}
       </form>
+
+      {cameraOpen && (
+        <CameraCapture
+          frameUrl={weddingInfo.guestbookFrameUrl}
+          onConfirm={(blob) => {
+            setPhoto(blob)
+            setCameraOpen(false)
+          }}
+          onClose={() => setCameraOpen(false)}
+        />
+      )}
 
       {/* 2. 슬라이드존 */}
       {!loading && <GuestbookSlide entries={entries} />}

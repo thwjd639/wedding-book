@@ -476,6 +476,163 @@ main {
   border-radius: 2px;
 }
 
+/* ════════════════════════════
+   자체 카메라 모달
+════════════════════════════ */
+.camera-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-modal-inner {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.camera-close {
+  position: absolute;
+  top: -44px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.camera-frame-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #111;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-video--mirror {
+  transform: scaleX(-1); /* 셀카 거울모드 (전면 카메라일 때만) */
+}
+
+.camera-frame-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.camera-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.camera-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.camera-btn {
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+}
+
+.camera-btn--ghost {
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: #fff;
+  font-size: 13px;
+}
+
+.camera-btn--primary {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background: #9c6b22;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.camera-btn--shutter {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: transparent;
+  position: relative;
+}
+
+.camera-btn--shutter::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.camera-btn--shutter:disabled {
+  opacity: 0.5;
+}
+
+.camera-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #fff;
+  text-align: center;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  padding: 40px 20px;
+}
+
+.camera-error-btn {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
 .form-success {
   text-align: center;
   font-size: 13px;

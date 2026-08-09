@@ -222,17 +222,21 @@ export default function AdminDashboard({ onLogout }: Props) {
                   {entry.image_url && (
                     <img className="admin-card-photo" src={entry.image_url} alt="첨부 사진" loading="lazy" />
                   )}
-                  <div className="admin-card-info">
-                    <p className="card-name">{entry.sender_name ?? '익명'}</p>
-                    <p className="card-phone">{maskPhone(entry.phone)}</p>
+                  <div className="admin-card-body">
                     {entry.message && <p className="card-message">{entry.message}</p>}
+                    <div className="admin-card-footer">
+                      <div className="admin-card-meta">
+                        <p className="card-name">— {entry.sender_name ?? '익명'}</p>
+                        <p className="card-phone">{maskPhone(entry.phone)}</p>
+                      </div>
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDelete(entry.id)}
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(entry.id)}
-                  >
-                    삭제
-                  </button>
                 </div>
               ))}
             </div>

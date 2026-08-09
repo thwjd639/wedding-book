@@ -5,9 +5,15 @@ import IntroSection from './components/IntroSection'
 import GallerySection from './components/GallerySection'
 import GuestbookSection from './components/GuestbookSection'
 import { weddingInfo } from './data/weddingInfo'
+import { supabase } from './lib/supabase'
 
 function App() {
   const screenshotProtect = weddingInfo.screenshotProtect
+
+  // 방문 기록 (통계 탭에서 집계용) - 관리자 페이지(/admin)는 별도 라우트라 여기서 안 잡힘
+  useEffect(() => {
+    supabase.from('page_views').insert({}).then(() => {})
+  }, [])
 
   useEffect(() => {
     if (screenshotProtect) {

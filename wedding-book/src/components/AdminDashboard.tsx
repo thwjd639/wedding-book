@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas'
 import SortablePhotoGrid, { type AdminPhoto } from './SortablePhotoGrid'
 import { compressImage } from '../lib/imageCompress'
 import { weddingInfo } from '../data/weddingInfo'
+import AdminStats from './AdminStats'
 
 interface Entry {
   id: string
@@ -23,7 +24,7 @@ interface Props {
 export default function AdminDashboard({ onLogout }: Props) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'guestbook' | 'photos'>('guestbook')
+  const [tab, setTab] = useState<'guestbook' | 'photos' | 'stats'>('guestbook')
   const [photos, setPhotos] = useState<AdminPhoto[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 })
@@ -114,11 +115,17 @@ export default function AdminDashboard({ onLogout }: Props) {
   // 드래그로 순서를 바꾸면 화면에 즉시 반영하고, 바뀐 순서를 order_index로 일괄 저장
   async function handlePhotoReorder(next: AdminPhoto[]) {
     setPhotos(next)
-    await Promise.all(
+    const results = await Promise.all(
       next.map((photo, index) =>
-        supabase.from('photos').update({ order_index: index }).eq('id', photo.id)
+        supabase.from('photos').update({ order_index: index }).eq('id', photo.id).select()
       )
     )
+
+    const failed = results.some((r) => r.error || !r.data || r.data.length === 0)
+    if (failed) {
+      alert('순서 저장에 실패했어요. Supabase의 photos 테이블 UPDATE 정책을 확인해주세요.')
+      fetchPhotos() // 실제 저장된 순서로 화면을 다시 맞춤
+    }
   }
 
   async function handleExportPDF() {
@@ -201,6 +208,12 @@ export default function AdminDashboard({ onLogout }: Props) {
         >
           사진 업로드
         </button>
+        <button
+          className={tab === 'stats' ? 'tab active' : 'tab'}
+          onClick={() => setTab('stats')}
+        >
+          통계
+        </button>
       </div>
 
       {/* 방명록 탭 */}
@@ -266,6 +279,11 @@ export default function AdminDashboard({ onLogout }: Props) {
             onDelete={handlePhotoDelete}
           />
         </div>
+      )}
+
+      {/* 통계 탭 */}
+      {tab === 'stats' && (
+        <AdminStats guestbookCount={entries.length} photoCount={photos.length} />
       )}
 
       {/* PDF 출력 전용 템플릿 (화면에는 안 보이고 캡처용으로만 렌더링) */}
